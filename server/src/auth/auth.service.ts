@@ -4,15 +4,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/resigter.dto';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { UserRoles } from 'src/common/common.enum';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login-dto';
-import { UserRoles } from 'src/common/common.enum';
+import { RegisterDto } from './dto/resigter.dto';
 @Injectable()
 export class AuthService {
   constructor(
