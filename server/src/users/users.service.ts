@@ -20,34 +20,13 @@ export class UsersService {
     private userRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {}
-  async registerUser(dto: CreateUserDto) {
-    const saltRounds =
-      this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
+  async createUser(data: Partial<User>) {
+    const user = this.userRepository.create(data);
+    return this.userRepository.save(user);
+  }
 
-    const emailExists = await this.userRepository.findOne({
-      where: { email: dto.email },
-    });
-
-    if (emailExists) {
-      throw new ConflictException('User with this email already exists!!');
-    }
-
-    const hashedPw = await bcrypt.hash(dto.password, saltRounds);
-
-    const user = this.userRepository.create({
-      ...dto,
-      password: hashedPw,
-    });
-
-    const savedUser = await this.userRepository.save(user);
-
-    return {
-      id: savedUser.id,
-      name: savedUser.name,
-      email: savedUser.email,
-      roles: savedUser.roles,
-      createdAt: savedUser.createdAt,
-    };
+  async findByEmail(email: string) {
+    return this.userRepository.findOne({ where: { email } });
   }
 
   async getAllUser() {

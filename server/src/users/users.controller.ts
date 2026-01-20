@@ -8,10 +8,10 @@ import type { Response } from 'express';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('/register')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.registerUser(createUserDto);
-  }
+  // @Post('/register')
+  // create(@Body() createUserDto: CreateUserDto) {
+  //   return this.usersService.registerUser(createUserDto);
+  // }
 
   @Get('/allUsers')
   getAllUser() {
