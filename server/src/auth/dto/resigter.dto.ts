@@ -12,10 +12,10 @@ export class RegisterDto {
   email: string;
 
   @ApiProperty({ example: 'pw' })
-  @IsString()
+  @IsString() 
   password: string;
 
-  @ApiProperty({ example: UserRoles.USER })
-  @IsEnum(UserRoles)
-  roles: UserRoles;
+  // @ApiProperty({ example: UserRoles.USER })
+  // @IsEnum(UserRoles)
+  // roles: UserRoles;
 }

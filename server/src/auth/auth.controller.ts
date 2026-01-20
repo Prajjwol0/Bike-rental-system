@@ -1,8 +1,8 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/resigter.dto';
-import { LoginDto } from 'src/users/dto/login.dto';
 import type { Response } from 'express';
+import { LoginDto } from './dto/login-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -13,7 +13,7 @@ export class AuthController {
     return this.authService.register(dto);
   }
   @Post('login')
-  login(@Body() dto: LoginDto, @Res({passthrough:true}) res:Response) {
+  login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 }
