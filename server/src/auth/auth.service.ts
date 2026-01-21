@@ -12,7 +12,8 @@ import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login-dto';
-import { RegisterDto } from './dto/resigter.dto';
+import { RegisterDto } from './dto/register.dto';
+import { Response } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
@@ -39,13 +40,14 @@ export class AuthService {
       ...dto,
       password: hashedPassword,
       roles: UserRoles.USER, // New users always users hunxan admin huna paudaina!!
-      
+
       //To admin database bata nai garnu parxa
+      // UPDATE `user`
       // SET roles = 'ADMIN'
-      // WHERE email = 'admin@example.com';
+      // WHERE email = 'mail@example.com';
     });
 
-    return await this.userRepository.find({
+    return await this.userRepository.findOne({
       where: {
         email: dto.email,
       },
@@ -59,7 +61,7 @@ export class AuthService {
   }
 
   // Login
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, res:Response) {
     const isUser = await this.usersService.findByEmail(dto.email);
     if (!isUser) {
       throw new UnauthorizedException('Invalid credentials!');
@@ -77,9 +79,19 @@ export class AuthService {
       role: isUser.roles,
     };
     // Sign jwt
+     const secret= this.configService.get<string>('JWT_SECRET')
+     if(!secret){
+      throw new Error("JWT_SECRET is not defined")
+     }
     const token = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
+      secret,
       expiresIn: '1h',
+    });
+    // Set cookie
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
     });
     return {
       accessToken: token,

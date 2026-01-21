@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Res,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -29,13 +38,13 @@ export class UsersController {
   }
 
   @Post('logout')
- async logout(@Res({ passthrough:true }) res:Response){
-  res.clearCookie('jwt', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax',
-  });
-    return this.usersService.logout(res)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    return this.usersService.logout(res);
   }
 
   @Delete('delete/:id')
@@ -43,13 +52,12 @@ export class UsersController {
     @Param('id') id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    res.clearCookie('jwt', {
+    res.clearCookie('access_token', {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
     });
 
     return this.usersService.deleteUser(id);
-
   }
 }
