@@ -1,8 +1,10 @@
+import { Bike } from 'src/bikes/entities/bike.entity';
 import { UserRoles } from 'src/common/common.enum';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -34,4 +36,7 @@ export class User {
     default: UserRoles.USER,
   })
   roles: UserRoles;
+
+  @OneToMany(() => Bike, (bike) => bike.owner)
+  bikes: Bike[]; //array of bikes owned by this user
 }

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBikeDto } from './dto/create-bike.dto';
 import { UpdateBikeDto } from './dto/update-bike.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,15 +22,10 @@ export class BikesService {
     if (bikeNum) {
       throw new ConflictException(' Bike with this number already exists!! ');
     }
-    const bikeData = this.bikeRepository.create({
-      bikeNum: dto.bikeNum,
-      brand: dto.brand,
-      lot: dto.lot,
-    });
+    const bikeData = this.bikeRepository.create({ ...dto });
     await this.bikeRepository.save(bikeData);
     return {
       message: 'Bike has been created!!',
-      bikeData,
     };
   }
 
@@ -46,11 +45,22 @@ export class BikesService {
     return bike;
   }
 
-  update(id: number, updateBikeDto: UpdateBikeDto) {
-    return `This action updates a #${id} bike`;
+  async update(bikeNum: string, updateBikeDto: UpdateBikeDto) {
+    const bike = this.bikeRepository.findOne({ where: { bikeNum } });
+    if (!bike) {
+      throw new NotFoundException('No bike with this number found');
+    }
+    await this.bikeRepository.update(bikeNum, updateBikeDto);
+
+    return `Bike ${bikeNum} updated!!`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} bike`;
+  async remove(bikeNum: string) {
+    const bike = this.bikeRepository.findOne({ where: { bikeNum } });
+    if (!bike) {
+      throw new NotFoundException('No bike with this number found');
+    }
+    await this.bikeRepository.delete(bikeNum);
+    return  `Bike ${bikeNum} deleted!!`
   }
 }

@@ -24,11 +24,11 @@ export class BikesController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBikeDto: UpdateBikeDto) {
-    return this.bikesService.update(+id, updateBikeDto);
+    return this.bikesService.update(id, updateBikeDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bikesService.remove(+id);
+  remove(@Param('id') bikeNum: string) {
+    return this.bikesService.remove(bikeNum);
   }
 }

@@ -1,22 +1,30 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Bike {
   @PrimaryColumn({
     unique: true,
-    nullable:false,
+    nullable: false,
   })
   bikeNum: string;
 
   @Column({
-    nullable:false,
+    nullable: false,
   })
   brand: string;
 
-
   @Column({
-    nullable:false,
+    nullable: false,
   })
   lot: number;
 
+  @ManyToOne(() => User, (user) => user.bikes)
+  owner: User;
+
+  @Column()
+  ownerMail: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

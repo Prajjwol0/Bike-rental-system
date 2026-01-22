@@ -64,8 +64,7 @@ export class UsersService {
       throw new NotFoundException('No user with the given id.');
     }
     if (updateUserDto.password) {
-      const saltRounds =
-        this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
+      const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
       updateUserDto.password = await bcrypt.hash(
         updateUserDto.password,
         saltRounds,
@@ -73,7 +72,7 @@ export class UsersService {
     }
     await this.userRepository.update(id, updateUserDto);
     return {
-      message: 'Updated !!',
+      message: `User ${id} updated!!`,
     };
   }
 
