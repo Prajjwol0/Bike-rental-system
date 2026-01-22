@@ -74,7 +74,7 @@ export class AuthService {
     // After matching all credentials -->
     // Generate JWT:::
     const payload = {
-      id: isUser.id,
+      sub: isUser.id,
       email: isUser.email,
       role: isUser.roles,
     };

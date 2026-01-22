@@ -6,7 +6,7 @@ import { Bike } from './entities/bike.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Bike]), // 🔴 THIS WAS MISSING
+    TypeOrmModule.forFeature([Bike]), 
   ],
   controllers: [BikesController],
   providers: [BikesService],

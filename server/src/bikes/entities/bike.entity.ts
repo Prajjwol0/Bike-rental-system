@@ -22,7 +22,10 @@ export class Bike {
   @ManyToOne(() => User, (user) => user.bikes)
   owner: User;
 
-  @Column()
+  @Column({
+    nullable: false,
+    // default:""
+  })
   ownerMail: string;
 
   @CreateDateColumn()

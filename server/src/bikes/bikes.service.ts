@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,52 +16,68 @@ export class BikesService {
     @InjectRepository(Bike)
     private bikeRepository: Repository<Bike>,
   ) {}
-  async create(dto: CreateBikeDto) {
-    const bikeNum = await this.bikeRepository.findOne({
+
+  async create(dto: CreateBikeDto, user: any) {
+    const existing = await this.bikeRepository.findOne({
       where: { bikeNum: dto.bikeNum },
     });
-    if (bikeNum) {
-      throw new ConflictException(' Bike with this number already exists!! ');
-    }
-    const bikeData = this.bikeRepository.create({ ...dto });
+    if (existing)
+      throw new ConflictException('Bike with this number already exists');
+
+    const bikeData = this.bikeRepository.create({
+      ...dto,
+      owner: { id: user.userId },
+      ownerMail: user.email,
+    });
+
     await this.bikeRepository.save(bikeData);
-    return {
-      message: 'Bike has been created!!',
-    };
+    return { message: 'Bike has been created!!' };
   }
 
   async findAll() {
-    return await this.bikeRepository.find();
+    return await this.bikeRepository.find({
+      select:{
+         bikeNum: true,
+         brand: true,
+         createdAt:true,
+         lot: true,
+         ownerMail:true,
+      }
+    });
   }
 
   async findOne(bikeNum: string) {
-    const bike = await this.bikeRepository.findOne({
+    return await this.bikeRepository.findOne({
       where: { bikeNum },
-      select: {
-        bikeNum: true,
-        brand: true,
-        lot: true,
-      },
+      select: { bikeNum: true, brand: true, lot: true },
     });
-    return bike;
   }
 
-  async update(bikeNum: string, updateBikeDto: UpdateBikeDto) {
-    const bike = this.bikeRepository.findOne({ where: { bikeNum } });
-    if (!bike) {
-      throw new NotFoundException('No bike with this number found');
-    }
-    await this.bikeRepository.update(bikeNum, updateBikeDto);
+  async update(bikeNum: string, updateBikeDto: UpdateBikeDto, user: any) {
+    const bike = await this.bikeRepository.findOne({
+      where: { bikeNum },
+      relations: ['owner'],
+    });
+    if (!bike) throw new NotFoundException('No bike with this number found');
 
+    if (bike.owner.id !== user.userId)
+      throw new ForbiddenException('You can only update your own bike');
+
+    await this.bikeRepository.update(bikeNum, updateBikeDto);
     return `Bike ${bikeNum} updated!!`;
   }
 
-  async remove(bikeNum: string) {
-    const bike = this.bikeRepository.findOne({ where: { bikeNum } });
-    if (!bike) {
-      throw new NotFoundException('No bike with this number found');
-    }
+  async remove(bikeNum: string, user: any) {
+    const bike = await this.bikeRepository.findOne({
+      where: { bikeNum },
+      relations: ['owner'],
+    });
+    if (!bike) throw new NotFoundException('No bike with this number found');
+
+    if (bike.owner.id !== user.userId)
+      throw new ForbiddenException('You can only delete your own bike');
+
     await this.bikeRepository.delete(bikeNum);
-    return  `Bike ${bikeNum} deleted!!`
+    return `Bike ${bikeNum} deleted!!`;
   }
 }
