@@ -13,7 +13,7 @@ import { User } from 'src/users/entities/user.entity';
       password: 'password' , // your PostgreSQL password
       database: 'bike_rental_db',
       autoLoadEntities: true,
-      synchronize: true, // for development only
+      synchronize: false, // for development only
     }),
   ],
 })
