@@ -25,8 +25,13 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
+  async findById(id: string) {
+    return this.userRepository.findOne({ where: { id } });
+  }
   async findByEmail(email: string) {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({
+      where: { email },
+    });
   }
 
   async getAllUser() {
@@ -64,7 +69,8 @@ export class UsersService {
       throw new NotFoundException('No user with the given id.');
     }
     if (updateUserDto.password) {
-      const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
+      const saltRounds =
+        this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
       updateUserDto.password = await bcrypt.hash(
         updateUserDto.password,
         saltRounds,

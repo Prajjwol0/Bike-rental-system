@@ -11,8 +11,8 @@ import { BikesModule } from './bikes/bikes.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), 
     DatabaseModule,
-    UsersModule,
     AuthModule,
+    UsersModule,
     BikesModule,
   ],
   controllers: [AppController],

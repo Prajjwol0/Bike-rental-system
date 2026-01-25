@@ -50,6 +50,7 @@ export class BikesService {
     return await this.bikeRepository.findOne({
       where: { bikeNum },
       select: { bikeNum: true, brand: true, lot: true },
+      
     });
   }
 
