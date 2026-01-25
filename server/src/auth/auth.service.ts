@@ -61,10 +61,10 @@ export class AuthService {
   }
 
   // Login
-  async login(dto: LoginDto, res: Response) {
+  async login(dto: LoginDto, res:Response) {
     const isUser = await this.usersService.findByEmail(dto.email);
-
-    if (!isUser) {
+    
+    if (!isUser) {  
       throw new UnauthorizedException('Invalid credentials!');
     }
     const userPw = await bcrypt.compare(dto.password, isUser.password);
@@ -80,10 +80,10 @@ export class AuthService {
       role: isUser.roles,
     };
     // Sign jwt
-    const secret = this.configService.get<string>('JWT_SECRET');
-    if (!secret) {
-      throw new Error('JWT_SECRET is not defined');
-    }
+     const secret= this.configService.get<string>('JWT_SECRET')
+     if(!secret){
+      throw new Error("JWT_SECRET is not defined")
+     }
     const token = this.jwtService.sign(payload, {
       secret,
       expiresIn: '1h',

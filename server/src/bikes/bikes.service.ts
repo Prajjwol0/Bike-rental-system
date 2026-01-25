@@ -16,6 +16,12 @@ export class BikesService {
     @InjectRepository(Bike)
     private bikeRepository: Repository<Bike>,
   ) {}
+  // Check if he's an owner
+  async isOwner(bikeNum: string, userId: string): Promise<boolean> {
+    const bike = await this.bikeRepository.findOne({ where: { bikeNum } });
+    if(!bike) return false;
+    return bike.owner.id ===  userId
+  }
 
   async create(dto: CreateBikeDto, user: any) {
     const existing = await this.bikeRepository.findOne({
@@ -26,7 +32,7 @@ export class BikesService {
 
     const bikeData = this.bikeRepository.create({
       ...dto,
-      owner: { id: user.userId },
+      owner: user,
       ownerMail: user.email,
     });
 
@@ -36,22 +42,38 @@ export class BikesService {
 
   async findAll() {
     return await this.bikeRepository.find({
-      select:{
-         bikeNum: true,
-         brand: true,
-         createdAt:true,
-         lot: true,
-         ownerMail:true,
-      }
+      select: {
+        bikeNum: true,
+        brand: true,
+        createdAt: true,
+        lot: true,
+        ownerMail: true,
+        owner :{
+          email:true
+        }
+      },
+      relations:['owner']
     });
   }
 
   async findOne(bikeNum: string) {
     return await this.bikeRepository.findOne({
       where: { bikeNum },
-      select: { bikeNum: true, brand: true, lot: true },
-      
+      relations: ['owner'],
     });
+  }
+
+  async findMyBike(user:any){
+    
+    
+    const owner = this.bikeRepository.find({
+      where: {ownerMail: user.email},
+    })
+      const bikes = this.bikeRepository.find({
+        where :{ownerMail:user.email}
+      })
+
+    return bikes
   }
 
   async update(bikeNum: string, updateBikeDto: UpdateBikeDto, user: any) {
@@ -61,7 +83,7 @@ export class BikesService {
     });
     if (!bike) throw new NotFoundException('No bike with this number found');
 
-    if (bike.owner.id !== user.userId)
+    if (bike.owner.id !== user.id)
       throw new ForbiddenException('You can only update your own bike');
 
     await this.bikeRepository.update(bikeNum, updateBikeDto);
@@ -75,7 +97,7 @@ export class BikesService {
     });
     if (!bike) throw new NotFoundException('No bike with this number found');
 
-    if (bike.owner.id !== user.userId)
+    if (bike.owner.id !== user.id)
       throw new ForbiddenException('You can only delete your own bike');
 
     await this.bikeRepository.delete(bikeNum);
