@@ -1,17 +1,14 @@
 import {
-  ConflictException,
   Injectable,
-  NotFoundException,
-  Res,
+  NotFoundException
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { Response } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -20,20 +17,26 @@ export class UsersService {
     private userRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {}
+
+  // Create User
   async createUser(data: Partial<User>) {
     const user = this.userRepository.create(data);
     return this.userRepository.save(user);
   }
 
+  // Find User By Id
   async findById(id: string) {
     return this.userRepository.findOne({ where: { id } });
   }
+
+  // Find user by email
   async findByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
     });
   }
 
+  // Find all user
   async getAllUser() {
     return await this.userRepository.find({
       select: {
@@ -46,6 +49,7 @@ export class UsersService {
     });
   }
 
+// Get a single user
   async getAUser(id: string) {
     const data = await this.userRepository.findOne({
       where: { id },
@@ -82,12 +86,14 @@ export class UsersService {
     };
   }
 
-  async logout(res: Response) {
+  // Logout user
+  async logout() {
     return {
       message: 'Logout successfully!!',
     };
   }
 
+  // Delete User
   async deleteUser(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
 

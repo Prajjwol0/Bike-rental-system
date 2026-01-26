@@ -39,15 +39,18 @@ export class UsersController {
 
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
-    return this.usersService.logout(res);
+res.clearCookie('access_token', {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 60000*60*24*7, //7 days
+});
+
+    return this.usersService.logout();
   }
 
-  @Delete('delete/:id')
+  @Delete('delete/:id') 
   async deleteUser(
     @Param('id') id: string,
     @Res({ passthrough: true }) res: Response,
