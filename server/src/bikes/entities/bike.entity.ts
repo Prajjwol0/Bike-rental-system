@@ -1,3 +1,4 @@
+import { Requests } from 'src/requests/entities/request.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 
@@ -21,6 +22,9 @@ export class Bike {
 
   @ManyToOne(() => User, (user) => user.bikes)
   owner: User;
+
+  @ManyToOne(()=> Requests,(requests)=>requests.bikes)
+  requests: Request[]
 
   @Column({
     nullable: false,

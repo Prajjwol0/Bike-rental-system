@@ -1,5 +1,6 @@
 import { Bike } from 'src/bikes/entities/bike.entity';
 import { UserRoles } from 'src/common/common.enum';
+import { Requests } from 'src/requests/entities/request.entity';
 import {
   Column,
   CreateDateColumn,
@@ -39,4 +40,8 @@ export class User {
 
   @OneToMany(() => Bike, (bike) => bike.owner)
   bikes: Bike[]; //array of bikes owned by this user
+
+  @OneToMany(()=>Requests, request => request.user)
+  requests: Request[]
+
 }
