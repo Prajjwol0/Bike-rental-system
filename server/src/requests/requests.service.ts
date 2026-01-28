@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Bike } from 'src/bikes/entities/bike.entity';
 import { UserRequest } from 'src/types/types';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { Requests } from './entities/request.entity';
@@ -90,35 +90,45 @@ export class RequestsService {
     };
   }
 
-  // Find all request
-  findAll() {
-    return this.requestRepo.find({
-      relations: {
-        bike: true,
-        renter: true,
-      },
-      select: {
-        id: true,
-        status: true,
-        createdAt: true,
-        offeredPrice: true,
+  // Find all your bike's request
 
-        renter: {
-          id: true,
-          email: true,
-          name: true,
+  async findRequestForMyBikes(ownerId: string) {
+    // Step 1: Get ONLY bikes owned by this user
+    const myBikes = await this.bikeRepo.find({
+      where: { owner: { id: ownerId } },
+      select: ['bikeNum'], // Use bikeNum instead of 'id' [web:11]
+    });
+
+    if (myBikes.length === 0) {
+      return [];
+    }
+
+    // Step 2: Get requests for ONLY those bikes
+    const bikeNums = myBikes.map((bike) => bike.bikeNum);
+
+    return await this.requestRepo.find({
+      where: {
+        bike: {
+          bikeNum: In(bikeNums), // Use bikeNum, not 'id'
         },
+      },
+      relations: {
+        bike: {
+          owner: true,
+        },
+        renter: true,
       },
     });
   }
 
-  // Find one request
-  async findOne(id: string) {
-    const request = await this.requestRepo.findOne({
-      where: { id },
-      
+  // Find request by bikeNum
+  async findByBikeNum(bikeNum: string) {
+    const request = await this.requestRepo.find({
+      where: {
+        bike: { bikeNum },
+      },
       relations: {
-        renter: true,
+        bike: true,
       },
     });
     return request;

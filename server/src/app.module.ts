@@ -22,7 +22,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     AuthModule,
-    UsersModule,
+    UsersModule, 
     BikesModule,
     RequestsModule,
   ],
@@ -44,10 +44,6 @@ export class AppModule implements NestModule {
         { path: 'requests', method: RequestMethod.GET }, // View all requests (public)
         { path: 'requests/:id', method: RequestMethod.GET }, // View single request (public)
       )
-      .forRoutes(
-        BikesController,
-        UsersController,
-        RequestsController, 
-      );
+      .forRoutes(BikesController, UsersController, RequestsController);
   }
 }
