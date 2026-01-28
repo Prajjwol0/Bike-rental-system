@@ -6,6 +6,7 @@ import { FaApple, FaGoogle } from "react-icons/fa";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 
+
 export default function Login() {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const { mutateAsync, isError, isPending, isSuccess } = useLogin();
@@ -39,8 +40,10 @@ export default function Login() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="min-h-screen w-full flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+      <Login/>
+      <div className=" w-full flex items-center justify-center p-2 sm:p-4 overflow-hidden">
         <div className="w-full max-w-4xl h-150 lg:h-175 bg-white rounded-2xl flex overflow-hidden ">
+      
           {/* LEFT  */}
           <div className="w-full lg:w-1/2 px-4 sm:px-6 lg:px-10 py-8 sm:py-12 lg:py-14 flex flex-col justify-center">
             <div className="space-y-4">
@@ -124,7 +127,7 @@ export default function Login() {
               </div>
 
               {/* Error Success */}
-              <div className="h-20 p-3 rounded-md flex items-center justify-center bg-gray-50">
+              <div className="h-20 p-3 rounded-md flex items-center justify-center bg-gray-50 ">
                 {isError && (
                   <div className="bg-red-50 border border-red-200 p-3 rounded-md w-full text-center">
                     <p className="text-red-700 text-sm">
@@ -145,7 +148,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isPending || !agreeToTerms}
-                className="w-full bg-zinc-500 text-white text-sm py-3 rounded-md hover:bg-neutral-400 transition-all disabled:bg-neutral-400 disabled:cursor-not-allowed shadow-md font-medium"
+                className="w-full bg-zinc-500 text-white text-sm py-3 rounded-md hover:bg-neutral-400 transition-all disabled:bg-neutral-400 disabled:cursor-not-allowed shadow-md font-medium "
               >
                 {isPending ? "Logging in..." : "Login"}
               </button>

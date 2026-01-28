@@ -50,7 +50,7 @@ export default function Register() {
 
   return (
     <form onSubmit={handleSubmit(onsubmit)}>
-      <div className="min-h-screen w-full flex items-center justify-center  p-2 sm:p-4 overflow-hidden">
+      <div className=" w-full flex items-center justify-center  p-2 sm:p-4 overflow-hidden">
         <div className="w-full max-w-4xl bg-white rounded-2xl flex overflow-hidden">
           {/* LEFT FORM */}
           <div className="w-full lg:w-1/2 px-4 sm:px-6 lg:px-10 py-8 sm:py-12 lg:py-14">
