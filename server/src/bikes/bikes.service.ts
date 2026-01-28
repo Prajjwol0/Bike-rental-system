@@ -86,7 +86,7 @@ export class BikesService {
       where: { bikeNum },
       relations: ['owner'],
     });
-    if (!bike) throw new NotFoundException('No bike with this number found');
+    if (!bike) throw new NotFoundException('Bike not found !!');
 
     if (bike.owner.id !== user.id)
       throw new ForbiddenException('You can only update your own bike');

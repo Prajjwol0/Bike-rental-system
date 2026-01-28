@@ -17,19 +17,6 @@ async function bootstrap() {
     .setTitle('Bike Rental')
     .setDescription('The Bike Rental API description')
     .setVersion('1.0')
-
-    // .addBearerAuth(
-    //   {
-    //     type: 'http',
-    //     scheme: 'bearer',
-    //     bearerFormat: 'JWT',
-    //     name: 'JWT',
-    //     description: 'Enter JWT token **with `Bearer ` prefix**',
-    //     in: 'header',
-    //   },
-    //   'access-token',
-    // )
-
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
