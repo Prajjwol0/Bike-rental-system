@@ -54,7 +54,6 @@ export class BikesController {
     @Body() updateBikeDto: UpdateBikeDto,
     @Req() req: Request,
   ) {
-    console.log('Logged-in user:', req.user);
     return this.bikesService.update(bikeNum, updateBikeDto, req.user);
   }
 
