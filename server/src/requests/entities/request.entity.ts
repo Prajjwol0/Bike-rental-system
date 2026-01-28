@@ -1,5 +1,5 @@
 import { Bike } from 'src/bikes/entities/bike.entity';
-import { Status } from 'src/common/common.enum';
+import { RequestStatus } from 'src/common/common.enum';
 import { User } from 'src/users/entities/user.entity';
 import {
     Column,
@@ -9,7 +9,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('request')
 export class Requests {
   @PrimaryGeneratedColumn()
   id: string;
@@ -19,16 +19,16 @@ export class Requests {
 
   @Column({
     type: 'enum',
-    enum: Status,
-    default: Status.PENDING,
+    enum: RequestStatus,
+    default: RequestStatus.PENDING,
   })
-  status: Status;
+  status: RequestStatus;
 
-  @ManyToOne(() => User, (user) => user.requests)
-  user: User[];
+  @ManyToOne(() => User, (user) => user.requests, { onDelete: 'CASCADE' })
+  renter: User;
 
-  @ManyToOne(() => Bike, (bike) => bike.requests)
-  bikes: Bike[];
+  @ManyToOne(() => Bike, (bike) => bike.requests, { onDelete: 'CASCADE' })
+  bike: Bike;
 
   @CreateDateColumn()
   createdAt: Date;

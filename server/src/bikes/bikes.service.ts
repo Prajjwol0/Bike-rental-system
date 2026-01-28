@@ -48,18 +48,23 @@ export class BikesService {
         createdAt: true,
         lot: true,
         ownerMail: true,
-        owner :{
-          email:true
-        }
+        status:true,
       },
-      relations:['owner']
+      // relations:['owner']
     });
   }
 
   async findOne(bikeNum: string) {
     return await this.bikeRepository.findOne({
       where: { bikeNum },
-      relations: ['owner'],
+      select: {
+        bikeNum: true,
+        brand: true,
+        createdAt: true,
+        lot: true,
+        ownerMail: true,
+        status: true,
+      },
     });
   }
 

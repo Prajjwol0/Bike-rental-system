@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -48,13 +45,13 @@ export class UsersService {
     });
   }
 
-// Get a single user
+  // Get a single user
   async getAUser(id: string) {
     const data = await this.userRepository.findOne({
       where: { id },
       select: {
         id: true,
-        name: true,
+        name: true, 
         email: true,
         createdAt: true,
         roles: true,
@@ -65,6 +62,35 @@ export class UsersService {
     }
     return data;
   }
+
+  async profile(id:string){
+  
+    return this.userRepository.findOne({
+
+      where : {id},
+      relations:{
+        // requests:true,
+        bikes:true,
+      },
+      select:{
+        id:true,
+        name: true,
+        roles:true,
+        email:true,
+        bikes:{
+          bikeNum:true,
+          brand:true,
+          lot:true
+        },
+        // requests:{
+        //   bike:true,
+        //   renter:true,
+        //   status:true
+        // }
+      },
+    });
+  }
+
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOne({ where: { id } });
@@ -94,16 +120,19 @@ export class UsersService {
 
   // Delete User
   async deleteUser(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['bikes', 'bikes.requests', 'requests'],
+    });
 
     if (!user) {
       throw new NotFoundException('No user found!! TrY aGaIn!!');
     }
 
-    await this.userRepository.delete(id);
+    await this.userRepository.remove(user);
 
     return {
-      message: 'User successfully deleted!!',
+      message: 'User and all related bikes/requests successfully deleted!!',
     };
   }
 }

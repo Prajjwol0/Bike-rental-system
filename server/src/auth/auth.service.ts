@@ -26,51 +26,48 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const existingUser = await this.usersService.findByEmail(dto.email);
-
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
+
+    //To admin database bata nai garnu parxa
+    // UPDATE `user`
+    // SET roles = 'ADMIN'
+    // WHERE email = 'mail@example.com';
 
     const saltRounds =
       this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
 
     const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
 
-    await this.usersService.createUser({
-      ...dto,
+    const user = await this.usersService.createUser({
+      name: dto.name,
+      email: dto.email,
       password: hashedPassword,
-      roles: UserRoles.USER, // New users always users hunxan admin huna paudaina!!
-
-      //To admin database bata nai garnu parxa
-      // UPDATE `user`
-      // SET roles = 'ADMIN'
-      // WHERE email = 'mail@example.com';
+      roles: UserRoles.USER,
     });
 
-    return await this.userRepository.findOne({
-      where: {
-        email: dto.email,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        roles: true,
-      },
-    });
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roles: user.roles,
+    };
   }
 
   // Login
-  async login(dto: LoginDto, res:Response) {
+  async login(dto: LoginDto, res: Response) {
     const isUser = await this.usersService.findByEmail(dto.email);
-    
-    if (!isUser) {  
+
+    if (!isUser) {
       throw new UnauthorizedException('Invalid credentials!');
     }
     const userPw = await bcrypt.compare(dto.password, isUser.password);
     if (!userPw) {
       throw new UnauthorizedException('Invalid credentials!');
     }
+
+ 
 
     // After matching all credentials -->
     // Generate JWT:::
@@ -80,10 +77,10 @@ export class AuthService {
       role: isUser.roles,
     };
     // Sign jwt
-     const secret= this.configService.get<string>('JWT_SECRET')
-     if(!secret){
-      throw new Error("JWT_SECRET is not defined")
-     }
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined');
+    }
     const token = this.jwtService.sign(payload, {
       secret,
       expiresIn: '1h',

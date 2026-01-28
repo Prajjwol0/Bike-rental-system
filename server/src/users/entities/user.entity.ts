@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Bike } from 'src/bikes/entities/bike.entity';
 import { UserRoles } from 'src/common/common.enum';
 import { Requests } from 'src/requests/entities/request.entity';
@@ -22,6 +23,7 @@ export class User {
   })
   email: string;
 
+  @Exclude()
   @Column()
   password: string;
 
@@ -38,10 +40,9 @@ export class User {
   })
   roles: UserRoles;
 
-  @OneToMany(() => Bike, (bike) => bike.owner)
+  @OneToMany(() => Bike, (bike) => bike.owner, { cascade: true })
   bikes: Bike[]; //array of bikes owned by this user
 
-  @OneToMany(()=>Requests, request => request.user)
-  requests: Request[]
-
+  @OneToMany(() => Requests, (request) => request.renter, { cascade: true })
+  requests: Requests[];
 }

@@ -6,11 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
@@ -21,45 +24,53 @@ export class UsersController {
   //   return this.usersService.registerUser(createUserDto);
   // }
 
+  // Get all users
   @Get('/allUsers')
   getAllUser() {
     return this.usersService.getAllUser();
   }
-  
+
+  // Get user by id
   @Get('getById/:id')
   getAUser(@Param('id') id: string) {
     return this.usersService.getAUser(id);
   }
 
-  @Patch('update/:id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.updateUser(id, updateUserDto);
+  // Own profile
+  @Get('/profile')
+  // @UseGuards(AuthGuard('jwt'))
+  getProfile(@Req() req: any) {
+    return this.usersService.profile(req.user.id);
   }
 
+  //  Update own profile - no ID needed
+  @Patch('update')
+  update(@Body() updateUserDto: UpdateUserDto, @Req() req: any) {
+    return this.usersService.updateUser(req.user.id, updateUserDto);
+  }
+
+  // User logout
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
-res.clearCookie('access_token', {
-  httpOnly: true,
-  secure: false,
-  sameSite: 'lax',
-  path: '/',
-  maxAge: 60000*60*24*7, //7 days
-});
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+    });
 
     return this.usersService.logout();
   }
 
-  @Delete('delete/:id') 
-  async deleteUser(
-    @Param('id') id: string,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  //  delete own profile
+  @Delete('delete')
+  async deleteUser(@Res({ passthrough: true }) res: Response, @Req() req: any) {
     res.clearCookie('access_token', {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: 'lax',
     });
 
-    return this.usersService.deleteUser(id);
+    return this.usersService.deleteUser(req.user.id);
   }
 }

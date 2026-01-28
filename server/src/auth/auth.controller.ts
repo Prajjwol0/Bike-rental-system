@@ -1,3 +1,4 @@
+
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -10,6 +11,7 @@ export class AuthController {
 
   @Post('register')
   register(@Body() dto: RegisterDto) {
+    console.log('Register HIT--->>', dto);
     return this.authService.register(dto);
   }
 
