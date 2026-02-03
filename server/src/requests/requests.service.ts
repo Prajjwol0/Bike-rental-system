@@ -5,13 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bike } from 'src/bikes/entities/bike.entity';
+import { BikeStatus, RequestStatus } from 'src/common/common.enum';
 import { UserRequest } from 'src/types/types';
 import { User } from 'src/users/entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { Requests } from './entities/request.entity';
-import { BikeStatus } from 'src/common/common.enum';
 
 @Injectable()
 export class RequestsService {
@@ -90,28 +90,100 @@ export class RequestsService {
     };
   }
 
-  // Find all your bike's request
-
+  // Find own bike's request
   async findRequestForMyBikes(ownerId: string) {
-    // Step 1: Get ONLY bikes owned by this user
-    const myBikes = await this.bikeRepo.find({
+    // Find bikes that belong to this owner
+    const bikesOwnedByUser = await this.bikeRepo.find({
       where: { owner: { id: ownerId } },
-      select: ['bikeNum'], // Use bikeNum instead of 'id' [web:11]
+      select: ['bikeNum'],
     });
 
-    if (myBikes.length === 0) {
+    // If user sanga bike xaina vane
+    if (!bikesOwnedByUser.length) {
       return [];
     }
 
-    // Step 2: Get requests for ONLY those bikes
-    const bikeNums = myBikes.map((bike) => bike.bikeNum);
+    // Step 2: Extract only bike numbers
+    const ownedBikeNumbers = bikesOwnedByUser.map((bike) => bike.bikeNum);
 
-    return await this.requestRepo.find({
+    // Step 3: Find requests made for those bikes
+    const requests = await this.requestRepo.find({
       where: {
-        bike: {
-          bikeNum: In(bikeNums), // Use bikeNum, not 'id'
-        },
+        bike: { bikeNum: In(ownedBikeNumbers) },
       },
+      relations: {
+        bike: { owner: true },
+        renter: true,
+      },
+    });
+
+    // Step 4: Return clean, frontend-friendly data
+    return requests.map((request) => ({
+      requestId: request.id,
+      status: request.status,
+      createdAt: request.createdAt,
+
+      renter: {
+        id: request.renter.id,
+        name: request.renter.name,
+        email: request.renter.email,
+      },
+
+      bike: {
+        number: request.bike.bikeNum,
+        brand: request.bike.brand,
+      },
+
+      offeredPrice: request.offeredPrice,
+    }));
+  }
+
+  // Find request by bikeNum
+  async findByBikeNum(bikeNum: string, userId: string) {
+    //  check if the user owns this bike
+    const bike = await this.bikeRepo.findOne({
+      where: { bikeNum },
+      relations: ['owner'],
+    });
+
+    if (!bike) {
+      throw new NotFoundException('Bike not found');
+    }
+
+    if (bike.owner.id !== userId) {
+      throw new ForbiddenException(
+        'You can only view requests for your own bikes',
+      );
+    }
+
+    const requests = await this.requestRepo.find({
+      where: { bike: { bikeNum } },
+      relations: { bike: true, renter: true },
+    });
+
+    return requests.map((req) => ({
+      requestId: req.id,
+      requestStatus: req.status,
+      createdAt: req.createdAt,
+      renter: {
+        id: req.renter.id,
+        name: req.renter.name,
+        email: req.renter.email,
+      },
+      bikeNumber: req.bike.bikeNum,
+      bikeBrand: req.bike.brand,
+      offeredPrice: req.offeredPrice,
+    }));
+  }
+
+  // Accept request:
+  async decideRequest(
+    reqId: string,
+    updateRequestDto: UpdateRequestDto,
+    user: any,
+  ) {
+    const request = await this.requestRepo.findOne({
+      where: { id: reqId },
       relations: {
         bike: {
           owner: true,
@@ -119,27 +191,53 @@ export class RequestsService {
         renter: true,
       },
     });
-  }
+    if (!request) {
+      throw new NotFoundException('Request not found!!');
+    }
 
-  // Find request by bikeNum
-  async findByBikeNum(bikeNum: string) {
-    const request = await this.requestRepo.find({
-      where: {
-        bike: { bikeNum },
+    // if (request?.status !== RequestStatus.PENDING) {
+    //   throw new ForbiddenException('This request is not pending anymore!!');
+    // }
+
+    if (request.bike.owner.id !== user.id) {
+      throw new ForbiddenException('You can only decide in your own request!!');
+    }
+    // if (request.status !== RequestStatus.PENDING) {
+    //   throw new error('The request is not pending anymore!! ');
+    // }
+    const oldStatus = request.status;
+    const newStatus = updateRequestDto.status;
+
+    request.status = newStatus;
+
+    if (request.status === RequestStatus.ACCEPTED) {
+      request.bike.status = BikeStatus.RENTED;
+      await this.bikeRepo.save(request.bike);
+    } else if (
+      newStatus === RequestStatus.REJECTED &&
+      oldStatus === RequestStatus.ACCEPTED
+    ) {
+      request.bike.status = BikeStatus.AVAILABLE;
+      await this.bikeRepo.save(request.bike);
+    }
+
+    const updatedRequest = await this.requestRepo.save(request);
+
+    return {
+      requestId: updatedRequest.id,
+      status: updatedRequest.status,
+      previousStatus: oldStatus,
+      offeredPrice: updatedRequest.offeredPrice,
+      renter: {
+        id: updatedRequest.renter.id,
+        name: updatedRequest.renter.name,
+        email: updatedRequest.renter.email,
       },
-      relations: {
-        bike: true,
+      bike: {
+        bikeNum: updatedRequest.bike.bikeNum,
+        brand: updatedRequest.bike.brand,
+        status: updatedRequest.bike.status,
       },
-    });
-    return request;
-  }
-
-  // update request
-  update(id: number, updateRequestDto: UpdateRequestDto) {
-    return `This action updates a #${id} request`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} request`;
+    };
   }
 }

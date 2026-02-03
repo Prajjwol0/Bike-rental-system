@@ -22,7 +22,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     AuthModule,
-    UsersModule, 
+    UsersModule,
     BikesModule,
     RequestsModule,
   ],
@@ -34,16 +34,20 @@ export class AppModule implements NestModule {
     consumer
       .apply(JwtAuthMiddleware)
       .exclude(
-        { path: 'auth/(.*)', method: RequestMethod.ALL },
+        // Auth routes
+        { path: 'auth/register', method: RequestMethod.POST },
+        { path: 'auth/login', method: RequestMethod.POST },
         // Public user routes
         { path: 'users/allUsers', method: RequestMethod.GET },
         { path: 'users/getById/:id', method: RequestMethod.GET },
         // Public bike routes
         { path: 'bikes/all', method: RequestMethod.GET },
-        // Public request routes
-        { path: 'requests', method: RequestMethod.GET }, // View all requests (public)
-        { path: 'requests/:id', method: RequestMethod.GET }, // View single request (public)
+        { path: 'bikes/:bikeNum', method: RequestMethod.GET },
       )
-      .forRoutes(BikesController, UsersController, RequestsController);
+      .forRoutes(
+        { path: 'users/*', method: RequestMethod.ALL },
+        { path: 'bikes/*', method: RequestMethod.ALL },
+        { path: 'requests/*', method: RequestMethod.ALL }, // ✅ Apply to ALL request routes
+      );
   }
 }
