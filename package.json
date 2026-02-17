@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/mapped-types": "*",
-    "cookie-parser": "^1.4.7",
-    "pg": "^8.17.2"
-  }
-}
