@@ -51,7 +51,7 @@ export class UsersService {
       where: { id },
       select: {
         id: true,
-        name: true, 
+        name: true,
         email: true,
         createdAt: true,
         roles: true,
@@ -63,34 +63,32 @@ export class UsersService {
     return data;
   }
 
-  async profile(id:string){
-  
-    return this.userRepository.findOne({
-
-      where : {id},
-      relations:{
-        // requests:true,
-        bikes:true,
+  async profile(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        bikes: true,
       },
-      select:{
-        id:true,
+      select: {
+        id: true,
         name: true,
-        roles:true,
-        email:true,
-        bikes:{
-          bikeNum:true,
-          brand:true,
-          lot:true
+        roles: true,
+        email: true,
+        bikes: {
+          bikeNum: true,
+          brand: true,
+          lot: true,
+          status: true,
         },
-        // requests:{
-        //   bike:true,
-        //   renter:true,
-        //   status:true
-        // }
       },
     });
-  }
 
+    if (!user) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    return user;
+  }
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOne({ where: { id } });

@@ -19,8 +19,8 @@ export class BikesService {
   // Check if he's an owner
   async isOwner(bikeNum: string, userId: string): Promise<boolean> {
     const bike = await this.bikeRepository.findOne({ where: { bikeNum } });
-    if(!bike) return false;
-    return bike.owner.id ===  userId
+    if (!bike) return false;
+    return bike.owner.id === userId;
   }
 
   async create(dto: CreateBikeDto, user: any) {
@@ -48,7 +48,7 @@ export class BikesService {
         createdAt: true,
         lot: true,
         ownerMail: true,
-        status:true,
+        status: true,
       },
       // relations:['owner']
     });
@@ -68,17 +68,23 @@ export class BikesService {
     });
   }
 
-  async findMyBike(user:any){
-    
-    
-    const owner = this.bikeRepository.find({
-      where: {ownerMail: user.email},
-    })
-      const bikes = this.bikeRepository.find({
-        where :{ownerMail:user.email}
-      })
+  async findMyBike(user: any) {
+    if (!user || !user.email) {
+      throw new ForbiddenException('User authentication failed');
+    }
 
-    return bikes
+    return this.bikeRepository.find({
+      where: {
+        ownerMail: user.email,
+      },
+      select: {
+        bikeNum: true,
+        brand: true,
+        lot: true,
+        ownerMail: true,
+        status: true,
+      },
+    });
   }
 
   async update(bikeNum: string, updateBikeDto: UpdateBikeDto, user: any) {

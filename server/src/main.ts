@@ -6,11 +6,24 @@ import { ClassSerializerInterceptor } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
+
   app.enableCors({
-    origin: true,
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Cache-Control',
+      'Pragma',
+      'Expires',
+    ],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
     credentials: true,
   });
+
+  app.use(cookieParser());
+
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()

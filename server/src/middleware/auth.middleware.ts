@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NestMiddleware,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { NextFunction, Request, Response } from 'express';
@@ -17,11 +13,14 @@ export class JwtAuthMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
+    if (req.method === 'OPTIONS') return next();
     try {
-      const token = req.cookies.access_token;
+      const token = req.cookies?.access_token;
+
       if (!token) {
-        console.log('No token found in cookies');
-        throw new UnauthorizedException('No token is provided !!!!');
+        return res.status(401).json({
+          message: 'No token provided',
+        });
       }
 
       const payload = await this.jwtService.verifyAsync(token, {
@@ -29,15 +28,19 @@ export class JwtAuthMiddleware implements NestMiddleware {
       });
 
       const user = await this.userService.findById(payload.sub);
+
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        return res.status(401).json({
+          message: 'User not found',
+        });
       }
 
-      (req as any).user = user; // attach user
+      (req as any).user = user;
 
       next();
     } catch (error) {
       res.clearCookie('access_token');
+
       return res.status(401).json({
         message: 'Session expired. Please login again.',
       });

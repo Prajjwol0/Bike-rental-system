@@ -34,20 +34,20 @@ export class AppModule implements NestModule {
     consumer
       .apply(JwtAuthMiddleware)
       .exclude(
-        // Auth routes
         { path: 'auth/register', method: RequestMethod.POST },
         { path: 'auth/login', method: RequestMethod.POST },
-        // Public user routes
-        { path: 'users/allUsers', method: RequestMethod.GET },
-        { path: 'users/getById/:id', method: RequestMethod.GET },
-        // Public bike routes
         { path: 'bikes/all', method: RequestMethod.GET },
-        { path: 'bikes/:bikeNum', method: RequestMethod.GET },
+        { path: 'requests/(.*)', method: RequestMethod.OPTIONS }, 
       )
       .forRoutes(
-        { path: 'users/*', method: RequestMethod.ALL },
-        { path: 'bikes/*', method: RequestMethod.ALL },
-        { path: 'requests/*', method: RequestMethod.ALL }, 
+        { path: 'requests/:bikeNum', method: RequestMethod.POST },
+        RequestsController,
+        UsersController,
+        BikesController,
+        { path: 'bikes/myBike', method: RequestMethod.GET },
+        { path: 'requests/my-bikes', method: RequestMethod.GET },
       );
   }
 }
+
+

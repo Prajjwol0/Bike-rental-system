@@ -32,6 +32,7 @@ export class RequestsService {
     req: UserRequest,
   ) {
     const userId = req?.user?.id;
+
     if (!userId) throw new ForbiddenException('Unauthorized');
 
     const renter = await this.userRepo.findOne({ where: { id: userId } });
@@ -43,51 +44,53 @@ export class RequestsService {
     });
     if (!bike) throw new NotFoundException('Bike not found');
     if (!bike.owner) throw new ForbiddenException('Bike has no owner');
-
     if (bike.owner.id === renter.id)
       throw new ForbiddenException('Cannot rent your own bike');
-
     if (bike.status !== BikeStatus.AVAILABLE)
-      throw new ForbiddenException('Bike is not available');
+      throw new ForbiddenException('Bike not available');
 
     const existingRequest = await this.requestRepo.findOne({
-      where: {
-        renter: { id: renter.id },
-      },
+      where: { renter: { id: renter.id }, bike: { bikeNum: bikeId } },
     });
-
     if (existingRequest)
       throw new ForbiddenException('You already requested this bike');
 
     const request = this.requestRepo.create({
-      offeredPrice: createRequestDto.offeredPrice,
+      offeredPrice: createRequestDto.offeredPrice || 1000,
       bike,
       renter,
     });
 
     const savedRequest = await this.requestRepo.save(request);
 
-    // response
     return {
       id: savedRequest.id,
       offeredPrice: savedRequest.offeredPrice,
       status: savedRequest.status,
-      renter: {
-        id: renter.id,
-        email: renter.email,
-        name: renter.name,
-      },
-      bike: {
-        bikeNum: bike.bikeNum,
-        brand: bike.brand,
-        owner: {
-          id: bike.owner.id,
-          email: bike.owner.email,
-          name: bike.owner.name,
-        },
-        status: bike.status,
-      },
+      renter: { id: renter.id, email: renter.email, name: renter.name },
+      bike: { bikeNum: bike.bikeNum, brand: bike.brand },
     };
+  }
+
+  async findMyRentalRequests(renterId: string) {
+    const allRequests = await this.requestRepo.find({
+      relations: { renter: true, bike: true },
+    });
+
+    const requests = await this.requestRepo.find({
+      where: { renter: { id: renterId } },
+      relations: { bike: true, renter: true },
+    });
+
+    return requests.map((request) => ({
+      id: request.id,
+      status: request.status,
+      offeredPrice: request.offeredPrice,
+      bike: {
+        bikeNum: request.bike.bikeNum,
+        brand: request.bike.brand,
+      },
+    }));
   }
 
   // Find own bike's request
@@ -119,21 +122,18 @@ export class RequestsService {
 
     // Step 4: Return clean, frontend-friendly data
     return requests.map((request) => ({
-      requestId: request.id,
+      id: request.id,
       status: request.status,
       createdAt: request.createdAt,
-
       renter: {
         id: request.renter.id,
         name: request.renter.name,
         email: request.renter.email,
       },
-
       bike: {
-        number: request.bike.bikeNum,
+        bikeNum: request.bike.bikeNum,
         brand: request.bike.brand,
       },
-
       offeredPrice: request.offeredPrice,
     }));
   }
@@ -239,5 +239,21 @@ export class RequestsService {
         status: updatedRequest.bike.status,
       },
     };
+  }
+
+  async cancelRequest(reqId: string, userId: string) {
+    const request = await this.requestRepo.findOne({
+      where: { id: reqId },
+      relations: { renter: true, bike: true },
+    });
+
+    if (!request) throw new NotFoundException('Request not found');
+    if (request.renter.id !== userId)
+      throw new ForbiddenException('Not your request');
+    if (request.status !== RequestStatus.PENDING)
+      throw new ForbiddenException('Can only cancel pending requests');
+
+    await this.requestRepo.remove(request);
+    return { message: 'Request cancelled successfully' };
   }
 }

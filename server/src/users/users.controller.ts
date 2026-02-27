@@ -8,12 +8,11 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
@@ -38,8 +37,11 @@ export class UsersController {
 
   // Own profile
   @Get('/profile')
-  // @UseGuards(AuthGuard('jwt'))
   getProfile(@Req() req: any) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+
     return this.usersService.profile(req.user.id);
   }
 

@@ -7,9 +7,10 @@ import {
   Patch,
   Post,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
+import { Request } from 'express';
 import { BikesService } from './bikes.service';
 import { CreateBikeDto } from './dto/create-bike.dto';
 import { UpdateBikeDto } from './dto/update-bike.dto';
@@ -20,48 +21,59 @@ import { UpdateBikeDto } from './dto/update-bike.dto';
 export class BikesController {
   constructor(private readonly bikesService: BikesService) {}
 
-
-  // GET ALL BIKES (public)
+  //  Public
   @Get('all')
   findAll() {
     return this.bikesService.findAll();
   }
 
-  // Get own bikes (protected)
+  //  Protected
   @Get('myBike')
   findMyBike(@Req() req: any) {
+    if (!req.user) {
+      throw new UnauthorizedException('Login required');
+    }
+
     return this.bikesService.findMyBike(req.user);
   }
 
-  // CREATE BIKE (protected)
+  //  Protected
   @Post('register')
-  create(@Body() createBikeDto: CreateBikeDto, @Req() req: Request) {
-    return this.bikesService.create(createBikeDto, req.user);
+  async create(@Body() dto: CreateBikeDto, @Req() req: any) {
+    if (!req.user) {
+      throw new UnauthorizedException('Login required');
+    }
+
+    return this.bikesService.create(dto, req.user);
   }
 
-  // PARAMETERIZED ROUTES LAST
-
-  // GET SINGLE BIKE (public)
+  //  Public
   @Get(':bikeNum')
   findOne(@Param('bikeNum') bikeNum: string) {
     return this.bikesService.findOne(bikeNum);
   }
 
-  // UPDATE BIKE (protected)
+  //  Protected
   @Patch(':bikeNum')
   update(
     @Param('bikeNum') bikeNum: string,
-    @Body() updateBikeDto: UpdateBikeDto,
-    @Req() req: Request,
+    @Body() dto: UpdateBikeDto,
+    @Req() req: any,
   ) {
-    return this.bikesService.update(bikeNum, updateBikeDto, req.user);
+    if (!req.user) {
+      throw new UnauthorizedException('Login required');
+    }
+
+    return this.bikesService.update(bikeNum, dto, req.user);
   }
 
-  // DELETE BIKE (protected)
+  //  Protected
   @Delete(':bikeNum')
-  remove(@Param('bikeNum') bikeNum: string, @Req() req: Request) {
-    console.log('Hit delete route');
-    console.log('Logged-in user:', req.user);
+  remove(@Param('bikeNum') bikeNum: string, @Req() req: any) {
+    if (!req.user) {
+      throw new UnauthorizedException('Login required');
+    }
+
     return this.bikesService.remove(bikeNum, req.user);
   }
 }

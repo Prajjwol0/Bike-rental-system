@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Req
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import type { UserRequest } from 'src/types/types';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
@@ -16,10 +8,23 @@ import { RequestsService } from './requests.service';
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
-  // Get request
   @Get('my-bikes')
   findRequestForMyBikes(@Req() req: UserRequest) {
-    return this.requestsService.findRequestForMyBikes(req.user?.id!);
+    if (!req.user?.id) return [];
+    return this.requestsService.findRequestForMyBikes(req.user.id);
+  }
+
+  @Get('my-requests')
+  async findMyRentalRequests(@Req() req: UserRequest) {
+    if (!req.user?.id) {
+      return [];
+    }
+
+    const requests = await this.requestsService.findMyRentalRequests(
+      req.user.id,
+    );
+
+    return requests;
   }
 
   // Accept or decline the request:
@@ -37,18 +42,26 @@ export class RequestsController {
   }
 
   // Post req
-  @Post(':bikeId')
+  @Post(':bikeNum')
+  @Post(':bikeNum')
   create(
-    @Param('bikeId') bikeId: string,
+    @Param('bikeNum') bikeNum: string,
     @Body() createRequestDto: CreateRequestDto,
-    @Req() req: any,
+    @Req() req: UserRequest,
   ) {
-    return this.requestsService.createReq(bikeId, createRequestDto, req.user);
+    console.log('🔥 CONTROLLER HIT - bikeNum:', bikeNum);
+    console.log('🔥 REQ.USER:', req.user);
+    return this.requestsService.createReq(bikeNum, createRequestDto, req);
   }
 
   // get req (Bu id)
   @Get(':bikeNum')
   findByBikeNum(@Param('bikeNum') bikeNum: string, @Req() req: UserRequest) {
     return this.requestsService.findByBikeNum(bikeNum, req.user?.id!);
+  }
+
+  @Delete(':reqId/cancel')
+  cancelRequest(@Param('reqId') reqId: string, @Req() req: any) {
+    return this.requestsService.cancelRequest(reqId, req.user.id);
   }
 }
