@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Brand Name</label>
                     <input
                       type="text"
-                      placeholder="e.g., Trek, Giant"
+                      placeholder="e.g., Yamaha, Honda"
                       value={newBike.brand}
                       onChange={e => setNewBike(prev => ({ ...prev, brand: e.target.value }))}
                       className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 font-medium text-gray-900 focus:border-indigo-300 focus:bg-white outline-none transition-all"
