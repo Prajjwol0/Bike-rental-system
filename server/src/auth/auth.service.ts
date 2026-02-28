@@ -83,13 +83,14 @@ export class AuthService {
     }
     const token = this.jwtService.sign(payload, {
       secret,
-      expiresIn: '1h',
+      expiresIn: '7d',
     });
     // Set cookie
     res.cookie('access_token', token, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return {
       accessToken: token,

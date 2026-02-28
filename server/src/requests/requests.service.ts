@@ -73,10 +73,6 @@ export class RequestsService {
   }
 
   async findMyRentalRequests(renterId: string) {
-    const allRequests = await this.requestRepo.find({
-      relations: { renter: true, bike: true },
-    });
-
     const requests = await this.requestRepo.find({
       where: { renter: { id: renterId } },
       relations: { bike: true, renter: true },
@@ -195,9 +191,9 @@ export class RequestsService {
       throw new NotFoundException('Request not found!!');
     }
 
-    // if (request?.status !== RequestStatus.PENDING) {
-    //   throw new ForbiddenException('This request is not pending anymore!!');
-    // }
+    if (request?.status !== RequestStatus.PENDING) {
+      throw new ForbiddenException('This request is not pending anymore!!');
+    }
 
     if (request.bike.owner.id !== user.id) {
       throw new ForbiddenException('You can only decide in your own request!!');
@@ -205,21 +201,20 @@ export class RequestsService {
     // if (request.status !== RequestStatus.PENDING) {
     //   throw new error('The request is not pending anymore!! ');
     // }
-    const oldStatus = request.status;
-    const newStatus = updateRequestDto.status;
+   const oldStatus = request.status;
+   const newStatus = updateRequestDto.status;
 
-    request.status = newStatus;
+   request.status = newStatus;
 
-    if (request.status === RequestStatus.ACCEPTED) {
-      request.bike.status = BikeStatus.RENTED;
-      await this.bikeRepo.save(request.bike);
-    } else if (
-      newStatus === RequestStatus.REJECTED &&
-      oldStatus === RequestStatus.ACCEPTED
-    ) {
-      request.bike.status = BikeStatus.AVAILABLE;
-      await this.bikeRepo.save(request.bike);
-    }
+   if (newStatus === RequestStatus.ACCEPTED) {
+     // Accepting → mark bike as rented
+     request.bike.status = BikeStatus.RENTED;
+     await this.bikeRepo.save(request.bike);
+   } else if (newStatus === RequestStatus.REJECTED) {
+     // Rejecting → make bike available again
+     request.bike.status = BikeStatus.AVAILABLE;
+     await this.bikeRepo.save(request.bike);
+   }
 
     const updatedRequest = await this.requestRepo.save(request);
 

@@ -43,14 +43,12 @@ export class RequestsController {
 
   // Post req
   @Post(':bikeNum')
-  @Post(':bikeNum')
   create(
     @Param('bikeNum') bikeNum: string,
     @Body() createRequestDto: CreateRequestDto,
     @Req() req: UserRequest,
   ) {
-    console.log('🔥 CONTROLLER HIT - bikeNum:', bikeNum);
-    console.log('🔥 REQ.USER:', req.user);
+  
     return this.requestsService.createReq(bikeNum, createRequestDto, req);
   }
 

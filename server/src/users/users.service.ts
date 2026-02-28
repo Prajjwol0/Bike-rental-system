@@ -95,6 +95,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('No user with the given id.');
     }
+
     if (updateUserDto.password) {
       const saltRounds =
         this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
@@ -103,10 +104,12 @@ export class UsersService {
         saltRounds,
       );
     }
+
     await this.userRepository.update(id, updateUserDto);
-    return {
-      message: `User ${id} updated!!`,
-    };
+
+    // ADD THIS - Return updated profile
+    const updatedUser = await this.profile(id);
+    return updatedUser;
   }
 
   // Logout user
